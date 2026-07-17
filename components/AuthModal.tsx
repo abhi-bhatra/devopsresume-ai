@@ -73,6 +73,18 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         </p>
 
         {mode !== "reset" && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-5 space-y-2">
+            <p className="text-blue-300 text-xs font-semibold uppercase tracking-wider">What you unlock</p>
+            {["Download full PDF report", "AI-generated ATS-friendly resume", "Resume rewritten with your missing keywords"].map(b => (
+              <div key={b} className="flex items-center gap-2 text-sm text-slate-300">
+                <span className="text-emerald-400 shrink-0">✓</span>
+                <span>{b}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {mode !== "reset" && (
           <>
             {/* Social */}
             <div className="space-y-3 mb-5">

@@ -37,6 +37,8 @@ export interface ExtractedProfile {
 }
 
 export interface AnalysisResult {
+  resumeText: string;
+  jobDescription: string;
   overallScore: number;
   grade: "A" | "B" | "C" | "D" | "F";
   sectionScores: {

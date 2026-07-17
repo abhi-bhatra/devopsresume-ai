@@ -8,6 +8,7 @@ import SectionScores from "./SectionScores";
 import KeywordTags from "./KeywordTags";
 import ProfilePanel from "./ProfilePanel";
 import { downloadResultsAsPDF } from "@/lib/download-pdf";
+import ResumeGenerator from "./ResumeGenerator";
 
 interface ResultsPanelProps {
   result: AnalysisResult;
@@ -44,7 +45,7 @@ function ListSection({
   );
 }
 
-type Tab = "score" | "ats";
+type Tab = "score" | "ats" | "generate";
 
 // Google/GitHub users are always verified; email/password users must verify
 function isVerified(user: User | null): boolean {
@@ -113,22 +114,16 @@ export default function ResultsPanel({ result, user, onSignIn, onReset }: Result
         </button>
 
         <button
-          onClick={!verified ? onSignIn : undefined}
-          disabled={verified}
+          onClick={verified ? () => setTab("generate") : onSignIn}
           className={`relative rounded-xl p-4 text-left border transition-all ${
             verified
-              ? "bg-slate-800/40 border-slate-700 opacity-50 cursor-not-allowed"
+              ? "bg-slate-800/60 hover:bg-slate-700/60 border-slate-700 hover:border-blue-500/50"
               : "bg-slate-800/40 border-slate-700 hover:border-blue-500/40"
           }`}
         >
           {!verified && (
             <span className="absolute top-3 right-3 text-slate-500 text-xs bg-slate-700 px-2 py-0.5 rounded-full">
               🔒 Free sign-in
-            </span>
-          )}
-          {verified && (
-            <span className="absolute top-3 right-3 text-slate-500 text-xs bg-slate-700 px-2 py-0.5 rounded-full">
-              Coming soon
             </span>
           )}
           <p className="text-white font-semibold text-sm mb-1">Generate ATS-Friendly Resume</p>
@@ -165,6 +160,16 @@ export default function ResultsPanel({ result, user, onSignIn, onReset }: Result
             </span>
           )}
         </button>
+        {verified && (
+          <button
+            onClick={() => setTab("generate")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === "generate" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            ATS Resume
+          </button>
+        )}
       </div>
 
       {/* Captured content */}
@@ -210,6 +215,10 @@ export default function ResultsPanel({ result, user, onSignIn, onReset }: Result
 
         {tab === "ats" && result.profile && (
           <ProfilePanel profile={result.profile} />
+        )}
+
+        {tab === "generate" && verified && (
+          <ResumeGenerator result={result} />
         )}
       </div>
 

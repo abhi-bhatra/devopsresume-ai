@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await analyzeResume(resumeText, jobDescription.trim());
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, resumeText, jobDescription: jobDescription.trim() });
   } catch (err) {
     console.error("Analysis error:", err);
     return NextResponse.json(
