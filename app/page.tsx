@@ -1,65 +1,225 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useRef, DragEvent } from "react";
+import { AnalysisResult } from "@/lib/azure-openai";
+import ResultsPanel from "@/components/ResultsPanel";
+
+const EXAMPLE_JD = `We are looking for a Senior DevOps / Platform Engineer to join our infrastructure team.
+
+Requirements:
+- 5+ years of experience with Kubernetes (EKS, GKE, or AKS)
+- Strong experience with Terraform and infrastructure as code
+- CI/CD pipelines: GitHub Actions, ArgoCD, or similar
+- Cloud: AWS or GCP preferred, Azure a plus
+- Observability: Prometheus, Grafana, alerting, SLO definition
+- Incident management, on-call experience
+- Linux, networking, security fundamentals
+- Golang or Python scripting
+- Experience with Helm, Kustomize
+- GitOps practices`;
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+  const [file, setFile] = useState<File | null>(null);
+  const [jd, setJd] = useState("");
+  const [dragging, setDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragging(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped?.type === "application/pdf") setFile(dropped);
+    else setError("Only PDF files are supported.");
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file || !jd.trim()) return;
+
+    setLoading(true);
+    setError(null);
+
+    const form = new FormData();
+    form.append("resume", file);
+    form.append("jd", jd);
+
+    const res = await fetch("/api/analyze", { method: "POST", body: form });
+    const data = await res.json();
+
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.error ?? "Analysis failed. Please try again.");
+      return;
+    }
+
+    setResult(data);
+  }
+
+  if (result) {
+    return (
+      <main className="min-h-screen bg-slate-900 px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <ResultsPanel result={result} onReset={() => { setResult(null); setFile(null); setJd(""); }} />
         </div>
       </main>
-    </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-900 px-4 py-12">
+      <div className="max-w-3xl mx-auto">
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
+            AI-Powered · Built for DevOps & SRE
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
+            DevOps Resume Screener
+          </h1>
+          <p className="text-slate-400 text-lg max-w-xl mx-auto">
+            Upload your resume, paste a job description — get an instant score,
+            keyword gap analysis, and actionable recommendations.
+          </p>
+          <p className="text-slate-500 text-sm mt-3">
+            Built by{" "}
+            <a
+              href="https://fieldnoteswithabhinav.beehiiv.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline"
+            >
+              Abhinav Sharma
+            </a>
+            , Microsoft MVP · Free, no signup
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* PDF Upload */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => inputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${
+              dragging
+                ? "border-blue-400 bg-blue-500/10"
+                : file
+                ? "border-emerald-500 bg-emerald-500/5"
+                : "border-slate-600 hover:border-slate-500 bg-slate-800/40"
+            }`}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) setFile(f);
+              }}
+            />
+            {file ? (
+              <div>
+                <div className="text-emerald-400 text-3xl mb-2">✓</div>
+                <p className="text-emerald-300 font-semibold">{file.name}</p>
+                <p className="text-slate-500 text-sm mt-1">
+                  {(file.size / 1024).toFixed(0)} KB · Click to change
+                </p>
+              </div>
+            ) : (
+              <div>
+                <div className="text-slate-500 text-4xl mb-3">↑</div>
+                <p className="text-slate-300 font-medium">
+                  Drop your resume here or{" "}
+                  <span className="text-blue-400">click to browse</span>
+                </p>
+                <p className="text-slate-500 text-sm mt-1">PDF only · Max 5MB</p>
+              </div>
+            )}
+          </div>
+
+          {/* JD Input */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-slate-300">
+                Job Description
+              </label>
+              <button
+                type="button"
+                onClick={() => setJd(EXAMPLE_JD)}
+                className="text-xs text-blue-400 hover:text-blue-300"
+              >
+                Load example JD
+              </button>
+            </div>
+            <textarea
+              value={jd}
+              onChange={(e) => setJd(e.target.value)}
+              placeholder="Paste the full job description here — requirements, tech stack, responsibilities..."
+              rows={10}
+              className="w-full bg-slate-800/60 border border-slate-600 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+            />
+            <p className="text-slate-500 text-xs mt-1">
+              {jd.length} characters · More detail = better analysis
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={!file || !jd.trim() || loading}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors text-base"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                Analyzing with AI...
+              </span>
+            ) : (
+              "Screen My Resume"
+            )}
+          </button>
+
+          <p className="text-center text-slate-600 text-xs">
+            Your resume is analyzed in memory and never stored.
+          </p>
+        </form>
+
+        {/* How it works */}
+        <div className="mt-16 border-t border-slate-800 pt-10">
+          <h2 className="text-center text-slate-400 text-sm font-semibold uppercase tracking-wider mb-6">
+            How It Works
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { step: "1", title: "Upload Resume", desc: "Drop your PDF resume. We extract text securely — nothing is stored." },
+              { step: "2", title: "Paste JD", desc: "Add the job description. The more detail, the more accurate the match." },
+              { step: "3", title: "Get Your Score", desc: "AI scores skills, experience, keywords, and format. See your gaps instantly." },
+            ].map((s) => (
+              <div key={s.step} className="bg-slate-800/40 border border-slate-700 rounded-xl p-5">
+                <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white mb-3">
+                  {s.step}
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">{s.title}</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

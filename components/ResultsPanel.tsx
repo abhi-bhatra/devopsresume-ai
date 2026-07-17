@@ -1,0 +1,121 @@
+"use client";
+
+import { AnalysisResult } from "@/lib/azure-openai";
+import ScoreGauge from "./ScoreGauge";
+import SectionScores from "./SectionScores";
+import KeywordTags from "./KeywordTags";
+
+interface ResultsPanelProps {
+  result: AnalysisResult;
+  onReset: () => void;
+}
+
+function ListSection({
+  title,
+  items,
+  color,
+  icon,
+}: {
+  title: string;
+  items: string[];
+  color: string;
+  icon: string;
+}) {
+  return (
+    <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700">
+      <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${color}`}>
+        {icon} {title}
+      </h3>
+      <ul className="space-y-2">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-2 text-sm text-slate-300">
+            <span className="mt-0.5 shrink-0">•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-white">Analysis Complete</h2>
+        <button
+          onClick={onReset}
+          className="text-sm text-slate-400 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          Analyze another
+        </button>
+      </div>
+
+      {/* Score + Summary */}
+      <div className="bg-slate-800/60 rounded-xl p-6 border border-slate-700 flex flex-col md:flex-row gap-6 items-center md:items-start">
+        <div className="shrink-0">
+          <ScoreGauge
+            score={result.overallScore}
+            grade={result.grade}
+            rolefit={result.rolefit}
+          />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            Summary
+          </h3>
+          <p className="text-slate-200 leading-relaxed">{result.summary}</p>
+          <div className="mt-4">
+            <SectionScores scores={result.sectionScores} />
+          </div>
+        </div>
+      </div>
+
+      {/* Keywords */}
+      <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700">
+        <KeywordTags
+          matched={result.matchedKeywords}
+          missing={result.missingKeywords}
+        />
+      </div>
+
+      {/* Strengths / Gaps / Recommendations */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <ListSection
+          title="Strengths"
+          items={result.strengths}
+          color="text-emerald-400"
+          icon="+"
+        />
+        <ListSection
+          title="Gaps"
+          items={result.gaps}
+          color="text-red-400"
+          icon="!"
+        />
+        <ListSection
+          title="Recommendations"
+          items={result.recommendations}
+          color="text-blue-400"
+          icon=">"
+        />
+      </div>
+
+      {/* CTA */}
+      <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl p-5 text-center">
+        <p className="text-slate-300 text-sm mb-2">
+          Want deeper DevOps career insights?
+        </p>
+        <a
+          href="https://fieldnoteswithabhinav.beehiiv.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 font-medium text-sm underline underline-offset-2"
+        >
+          Subscribe to Field Notes With Abhinav →
+        </a>
+      </div>
+    </div>
+  );
+}
