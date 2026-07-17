@@ -106,7 +106,7 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
-            AI-Powered · Free · No Signup
+            AI-Powered · Free to Use
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
             Screen My Resume

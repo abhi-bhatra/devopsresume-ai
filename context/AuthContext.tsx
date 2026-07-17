@@ -14,6 +14,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
 } from "firebase/auth";
 import { getFirebaseAuth, googleProvider, githubProvider } from "@/lib/firebase";
@@ -57,7 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+    const check = await fetch("/api/validate-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const { allowed, reason } = await check.json();
+    if (!allowed) throw new Error(reason);
+    const cred = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+    await sendEmailVerification(cred.user);
   };
 
   const resetPassword = async (email: string) => {
