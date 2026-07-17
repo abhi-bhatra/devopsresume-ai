@@ -4,19 +4,17 @@ import { useState, useRef, DragEvent } from "react";
 import { AnalysisResult } from "@/lib/azure-openai";
 import ResultsPanel from "@/components/ResultsPanel";
 
-const EXAMPLE_JD = `We are looking for a Senior DevOps / Platform Engineer to join our infrastructure team.
+const EXAMPLE_JD = `We are looking for a Senior Product Manager to join our growing team.
 
 Requirements:
-- 5+ years of experience with Kubernetes (EKS, GKE, or AKS)
-- Strong experience with Terraform and infrastructure as code
-- CI/CD pipelines: GitHub Actions, ArgoCD, or similar
-- Cloud: AWS or GCP preferred, Azure a plus
-- Observability: Prometheus, Grafana, alerting, SLO definition
-- Incident management, on-call experience
-- Linux, networking, security fundamentals
-- Golang or Python scripting
-- Experience with Helm, Kustomize
-- GitOps practices`;
+- 5+ years of product management experience
+- Proven track record of launching successful products
+- Strong analytical skills and data-driven decision making
+- Experience working with cross-functional teams (Engineering, Design, Marketing)
+- Excellent written and verbal communication skills
+- Familiarity with agile methodologies and product roadmap planning
+- Experience with user research and A/B testing
+- Background in SaaS products preferred`;
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -75,14 +73,14 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
-            AI-Powered · Built for DevOps & SRE
+            AI-Powered · Free · No Signup
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
-            DevOps Resume Screener
+            Screen My Resume
           </h1>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Upload your resume, paste a job description — get an instant score,
-            keyword gap analysis, and actionable recommendations.
+            Upload your resume, paste any job description — get an instant score,
+            keyword gap analysis, and actionable recommendations. Works for any role.
           </p>
           <p className="text-slate-500 text-sm mt-3">
             Built by{" "}
@@ -94,7 +92,7 @@ export default function Home() {
             >
               Abhinav Sharma
             </a>
-            , Microsoft MVP · Free, no signup
+            , Microsoft MVP
           </p>
         </div>
 

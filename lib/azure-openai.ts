@@ -27,7 +27,7 @@ export interface AnalysisResult {
   rolefit: string;
 }
 
-const ANALYSIS_PROMPT = `You are an expert DevOps/SRE/Platform Engineering recruiter and technical hiring manager with 10+ years of experience.
+const ANALYSIS_PROMPT = `You are an expert recruiter and hiring manager with 10+ years of experience across all industries and job functions.
 
 Analyze the resume against the job description below and return a structured JSON response.
 
@@ -47,16 +47,16 @@ Return ONLY valid JSON matching this exact schema:
     "keywords": <0-100>,
     "format": <0-100>
   },
-  "matchedKeywords": [<up to 10 matched tech keywords>],
-  "missingKeywords": [<up to 10 important missing keywords from JD>],
-  "gaps": [<3-5 specific gap statements, e.g. "No Terraform experience mentioned">],
-  "strengths": [<3-5 specific strength statements>],
-  "recommendations": [<3-5 actionable improvement tips>],
+  "matchedKeywords": [<up to 10 keywords from the resume that match the JD>],
+  "missingKeywords": [<up to 10 important keywords from the JD missing in the resume>],
+  "gaps": [<3-5 specific gap statements based on the JD requirements>],
+  "strengths": [<3-5 specific strength statements based on the resume>],
+  "recommendations": [<3-5 actionable tips to improve the resume for this role>],
   "summary": "<2-3 sentence overall assessment>",
   "rolefit": "<one of: Strong Fit | Good Fit | Partial Fit | Poor Fit>"
 }
 
-Be honest and specific. Focus on DevOps/SRE/Platform Engineering signals: Kubernetes, CI/CD, IaC, cloud providers, observability, incident management, SLOs.`;
+Be honest and specific. Tailor your analysis entirely to the role described in the job description — do not assume any particular industry or job function.`;
 
 export async function analyzeResume(
   resumeText: string,

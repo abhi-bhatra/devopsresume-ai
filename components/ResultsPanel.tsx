@@ -105,7 +105,7 @@ export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
       {/* CTA */}
       <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl p-5 text-center">
         <p className="text-slate-300 text-sm mb-2">
-          Want deeper DevOps career insights?
+          Want career insights, industry trends, and job search tips?
         </p>
         <a
           href="https://fieldnoteswithabhinav.beehiiv.com"

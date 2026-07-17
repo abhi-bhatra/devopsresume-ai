@@ -5,12 +5,12 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DevOps Resume Screener — Score Your Resume Instantly",
+  title: "Screen My Resume — AI Resume Screener for Any Role",
   description:
-    "AI-powered resume screener for DevOps engineers, SREs, and platform teams. Upload your resume, paste a JD, get an instant score and gap analysis.",
+    "AI-powered resume screener. Upload your resume, paste a job description, and get an instant score, keyword gap analysis, and actionable recommendations.",
   openGraph: {
-    title: "DevOps Resume Screener",
-    description: "Score your DevOps resume in seconds with AI",
+    title: "Screen My Resume — AI Resume Screener",
+    description: "Score your resume against any job description in seconds",
     type: "website",
   },
 };
