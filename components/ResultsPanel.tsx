@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { User } from "firebase/auth";
 import { AnalysisResult } from "@/lib/azure-openai";
 import ScoreGauge from "./ScoreGauge";
 import SectionScores from "./SectionScores";
@@ -9,6 +10,8 @@ import ProfilePanel from "./ProfilePanel";
 
 interface ResultsPanelProps {
   result: AnalysisResult;
+  user: User | null;
+  onSignIn: () => void;
   onReset: () => void;
 }
 
@@ -42,7 +45,7 @@ function ListSection({
 
 type Tab = "score" | "ats";
 
-export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
+export default function ResultsPanel({ result, user, onSignIn, onReset }: ResultsPanelProps) {
   const [tab, setTab] = useState<Tab>("score");
 
   return (
@@ -149,18 +152,48 @@ export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
         <ProfilePanel profile={result.profile} />
       )}
 
-      {/* CTA */}
-      <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl p-5 text-center">
-        <p className="text-slate-300 text-sm mb-2">
-          Want career insights, industry trends, and job search tips?
-        </p>
+      {/* Premium features */}
+      {user ? (
+        <div className="grid md:grid-cols-2 gap-4">
+          <button
+            disabled
+            className="bg-slate-800/60 border border-slate-700 rounded-xl p-5 text-left opacity-60 cursor-not-allowed"
+          >
+            <p className="text-white font-semibold text-sm mb-1">Download PDF Report</p>
+            <p className="text-slate-400 text-xs">Full report as a shareable PDF — coming soon</p>
+          </button>
+          <button
+            disabled
+            className="bg-slate-800/60 border border-slate-700 rounded-xl p-5 text-left opacity-60 cursor-not-allowed"
+          >
+            <p className="text-white font-semibold text-sm mb-1">Generate ATS-Friendly Resume</p>
+            <p className="text-slate-400 text-xs">AI rewrites your resume based on gaps — coming soon</p>
+          </button>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl p-6 text-center">
+          <p className="text-white font-semibold mb-1">Unlock Premium Features</p>
+          <p className="text-slate-400 text-sm mb-4">
+            Sign in free to download your PDF report and generate an ATS-friendly resume.
+          </p>
+          <button
+            onClick={onSignIn}
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
+          >
+            Sign in — it&apos;s free
+          </button>
+        </div>
+      )}
+
+      {/* Newsletter CTA */}
+      <div className="text-center">
         <a
           href="https://fieldnoteswithabhinav.beehiiv.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 font-medium text-sm underline underline-offset-2"
+          className="text-slate-500 hover:text-slate-300 text-xs underline underline-offset-2 transition-colors"
         >
-          Subscribe to Field Notes With Abhinav →
+          Subscribe to Field Notes With Abhinav for career insights →
         </a>
       </div>
     </div>

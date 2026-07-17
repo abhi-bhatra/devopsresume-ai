@@ -3,6 +3,8 @@
 import { useState, useRef, DragEvent } from "react";
 import { AnalysisResult } from "@/lib/azure-openai";
 import ResultsPanel from "@/components/ResultsPanel";
+import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/context/AuthContext";
 
 const EXAMPLE_JD = `We are looking for a Senior Product Manager to join our growing team.
 
@@ -17,12 +19,14 @@ Requirements:
 - Background in SaaS products preferred`;
 
 export default function Home() {
+  const { user, logout } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [jd, setJd] = useState("");
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
@@ -61,15 +65,44 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-slate-900 px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          <ResultsPanel result={result} onReset={() => { setResult(null); setFile(null); setJd(""); }} />
+          <ResultsPanel
+            result={result}
+            user={user}
+            onSignIn={() => setShowAuth(true)}
+            onReset={() => { setResult(null); setFile(null); setJd(""); }}
+          />
         </div>
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </main>
     );
   }
 
   return (
     <main className="min-h-screen bg-slate-900 px-4 py-12">
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       <div className="max-w-3xl mx-auto">
+        {/* Nav */}
+        <div className="flex justify-end mb-6">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-slate-400 text-sm">{user.email ?? user.displayName}</span>
+              <button
+                onClick={() => logout()}
+                className="text-sm text-slate-400 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuth(true)}
+              className="text-sm bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors"
+            >
+              Sign in
+            </button>
+          )}
+        </div>
+
         {/* Hero */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
