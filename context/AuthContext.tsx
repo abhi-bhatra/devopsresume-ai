@@ -22,6 +22,7 @@ import { getFirebaseAuth, googleProvider, githubProvider } from "@/lib/firebase"
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  getToken: () => Promise<string | null>;
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
@@ -73,6 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sendPasswordResetEmail(getFirebaseAuth(), email);
   };
 
+  const getToken = async (): Promise<string | null> => {
+    const auth = getFirebaseAuth();
+    return auth.currentUser ? auth.currentUser.getIdToken() : null;
+  };
+
   const logout = async () => {
     await signOut(getFirebaseAuth());
   };
@@ -82,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
+        getToken,
         signInWithGoogle,
         signInWithGithub,
         signInWithEmail,

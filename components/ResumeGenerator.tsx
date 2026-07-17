@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AnalysisResult } from "@/lib/azure-openai";
+import { useAuth } from "@/context/AuthContext";
 
 interface ResumeGeneratorProps {
   result: AnalysisResult;
@@ -12,6 +13,7 @@ interface ResumeGeneratorProps {
 type Mode = "preview" | "edit";
 
 export default function ResumeGenerator({ result }: ResumeGeneratorProps) {
+  const { getToken } = useAuth();
   const [generating, setGenerating] = useState(false);
   const [resume, setResume] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,9 +25,13 @@ export default function ResumeGenerator({ result }: ResumeGeneratorProps) {
     setError(null);
     setResume(null);
 
+    const token = await getToken();
     const res = await fetch("/api/generate-resume", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         resumeText: result.resumeText,
         jobDescription: result.jobDescription,
@@ -170,18 +176,20 @@ export default function ResumeGenerator({ result }: ResumeGeneratorProps) {
       {mode === "preview" && (
         <div
           id="resume-print"
-          className="bg-white rounded-xl p-8 md:p-12 max-h-[700px] overflow-y-auto"
+          className="bg-white rounded-xl p-8 md:p-12 max-h-[700px] overflow-y-auto text-gray-900"
         >
           <div className="prose prose-slate max-w-none
-            prose-h1:text-2xl prose-h1:font-bold prose-h1:text-gray-900 prose-h1:border-b prose-h1:border-gray-300 prose-h1:pb-2 prose-h1:mb-3
-            prose-h2:text-sm prose-h2:font-bold prose-h2:text-gray-700 prose-h2:uppercase prose-h2:tracking-wider prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-1 prose-h2:mt-5 prose-h2:mb-2
-            prose-h3:text-sm prose-h3:font-semibold prose-h3:text-gray-800 prose-h3:mt-3 prose-h3:mb-0.5
+            prose-headings:text-gray-900
+            prose-h1:text-2xl prose-h1:font-bold prose-h1:border-b prose-h1:border-gray-300 prose-h1:pb-2 prose-h1:mb-3
+            prose-h2:text-sm prose-h2:font-bold prose-h2:uppercase prose-h2:tracking-wider prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-1 prose-h2:mt-5 prose-h2:mb-2
+            prose-h3:text-sm prose-h3:font-semibold prose-h3:mt-3 prose-h3:mb-0.5
             prose-p:text-gray-700 prose-p:text-sm prose-p:leading-relaxed prose-p:my-1
             prose-ul:my-1 prose-ul:pl-4
             prose-li:text-gray-700 prose-li:text-sm prose-li:my-0.5
             prose-strong:font-semibold prose-strong:text-gray-900
             prose-em:text-gray-500 prose-em:text-xs
-            prose-hr:border-gray-200 prose-hr:my-3">
+            prose-hr:border-gray-200 prose-hr:my-3
+            prose-a:text-blue-600">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {resume}
             </ReactMarkdown>

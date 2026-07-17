@@ -19,7 +19,7 @@ Requirements:
 - Background in SaaS products preferred`;
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { user, logout, getToken } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [jd, setJd] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -48,7 +48,12 @@ export default function Home() {
     form.append("resume", file);
     form.append("jd", jd);
 
-    const res = await fetch("/api/analyze", { method: "POST", body: form });
+    const token = await getToken();
+    const res = await fetch("/api/analyze", {
+      method: "POST",
+      body: form,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     const data = await res.json();
 
     setLoading(false);
