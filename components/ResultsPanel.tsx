@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { AnalysisResult } from "@/lib/azure-openai";
 import ScoreGauge from "./ScoreGauge";
 import SectionScores from "./SectionScores";
 import KeywordTags from "./KeywordTags";
+import ProfilePanel from "./ProfilePanel";
 
 interface ResultsPanelProps {
   result: AnalysisResult;
@@ -38,7 +40,11 @@ function ListSection({
   );
 }
 
+type Tab = "score" | "ats";
+
 export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
+  const [tab, setTab] = useState<Tab>("score");
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -52,55 +58,96 @@ export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
         </button>
       </div>
 
-      {/* Score + Summary */}
-      <div className="bg-slate-800/60 rounded-xl p-6 border border-slate-700 flex flex-col md:flex-row gap-6 items-center md:items-start">
-        <div className="shrink-0">
-          <ScoreGauge
-            score={result.overallScore}
-            grade={result.grade}
-            rolefit={result.rolefit}
-          />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Summary
-          </h3>
-          <p className="text-slate-200 leading-relaxed">{result.summary}</p>
-          <div className="mt-4">
-            <SectionScores scores={result.sectionScores} />
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-800/60 border border-slate-700 rounded-xl p-1 w-fit">
+        <button
+          onClick={() => setTab("score")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            tab === "score"
+              ? "bg-blue-600 text-white"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          Match Score
+        </button>
+        <button
+          onClick={() => setTab("ats")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            tab === "ats"
+              ? "bg-blue-600 text-white"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          What ATS Sees
+          {result.profile?.atsScore !== undefined && (
+            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+              result.profile.atsScore >= 80 ? "bg-emerald-500/30 text-emerald-300" :
+              result.profile.atsScore >= 60 ? "bg-yellow-500/30 text-yellow-300" :
+              "bg-red-500/30 text-red-300"
+            }`}>
+              {result.profile.atsScore}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {tab === "score" && (
+        <>
+          {/* Score + Summary */}
+          <div className="bg-slate-800/60 rounded-xl p-6 border border-slate-700 flex flex-col md:flex-row gap-6 items-center md:items-start">
+            <div className="shrink-0">
+              <ScoreGauge
+                score={result.overallScore}
+                grade={result.grade}
+                rolefit={result.rolefit}
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Summary
+              </h3>
+              <p className="text-slate-200 leading-relaxed">{result.summary}</p>
+              <div className="mt-4">
+                <SectionScores scores={result.sectionScores} />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Keywords */}
-      <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700">
-        <KeywordTags
-          matched={result.matchedKeywords}
-          missing={result.missingKeywords}
-        />
-      </div>
+          {/* Keywords */}
+          <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700">
+            <KeywordTags
+              matched={result.matchedKeywords}
+              missing={result.missingKeywords}
+            />
+          </div>
 
-      {/* Strengths / Gaps / Recommendations */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <ListSection
-          title="Strengths"
-          items={result.strengths}
-          color="text-emerald-400"
-          icon="+"
-        />
-        <ListSection
-          title="Gaps"
-          items={result.gaps}
-          color="text-red-400"
-          icon="!"
-        />
-        <ListSection
-          title="Recommendations"
-          items={result.recommendations}
-          color="text-blue-400"
-          icon=">"
-        />
-      </div>
+          {/* Strengths / Gaps / Recommendations */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <ListSection
+              title="Strengths"
+              items={result.strengths}
+              color="text-emerald-400"
+              icon="+"
+            />
+            <ListSection
+              title="Gaps"
+              items={result.gaps}
+              color="text-red-400"
+              icon="!"
+            />
+            <ListSection
+              title="Recommendations"
+              items={result.recommendations}
+              color="text-blue-400"
+              icon=">"
+            />
+          </div>
+        </>
+      )}
+
+      {tab === "ats" && result.profile && (
+        <ProfilePanel profile={result.profile} />
+      )}
 
       {/* CTA */}
       <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl p-5 text-center">
