@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     let uid: string;
     try {
-      const decoded = await adminAuth.verifyIdToken(authHeader.slice(7));
+      const decoded = await adminAuth().verifyIdToken(authHeader.slice(7));
       uid = decoded.uid;
     } catch {
       return NextResponse.json({ error: "Session expired. Please sign in again." }, { status: 401 });

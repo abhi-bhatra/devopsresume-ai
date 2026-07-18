@@ -17,9 +17,10 @@ export async function checkRateLimit(
   field: LimitField,
   limit: number
 ): Promise<RateLimitResult> {
-  const docRef = adminDb.doc(`usage/${key}/daily/${todayKey()}`);
+  const db = adminDb();
+  const docRef = db.doc(`usage/${key}/daily/${todayKey()}`);
 
-  const result = await adminDb.runTransaction(async (tx) => {
+  const result = await db.runTransaction(async (tx) => {
     const snap = await tx.get(docRef);
     const current = snap.exists ? (snap.data()?.[field] ?? 0) : 0;
 

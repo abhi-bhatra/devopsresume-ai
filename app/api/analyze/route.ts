@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (authHeader?.startsWith("Bearer ")) {
       try {
         const token = authHeader.slice(7);
-        const decoded = await adminAuth.verifyIdToken(token);
+        const decoded = await adminAuth().verifyIdToken(token);
         rateLimitKey = `user_${decoded.uid}`;
         dailyLimit = 10;
       } catch {
