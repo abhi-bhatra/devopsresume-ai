@@ -9,6 +9,9 @@ import {
 } from "react";
 import {
   User,
+  AuthCredential,
+  AuthError,
+  AuthProvider as FirebaseAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -16,8 +19,34 @@ import {
   sendPasswordResetEmail,
   sendEmailVerification,
   signOut,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  fetchSignInMethodsForEmail,
+  linkWithCredential,
 } from "firebase/auth";
 import { getFirebaseAuth, googleProvider, githubProvider } from "@/lib/firebase";
+
+// Thrown when a social sign-in hits Firebase's "one account per email"
+// rule — the email is already registered via a different provider. Carries
+// what the UI needs to prompt the user to sign in with the existing
+// provider and link this credential to it.
+export class AccountLinkRequiredError extends Error {
+  constructor(
+    public email: string,
+    public existingMethods: string[],
+    public pendingCredential: AuthCredential
+  ) {
+    super(`An account already exists for ${email} using a different sign-in method.`);
+    this.name = "AccountLinkRequiredError";
+  }
+}
+
+function pendingCredentialFrom(error: AuthError): AuthCredential | null {
+  return (
+    GithubAuthProvider.credentialFromError(error) ??
+    GoogleAuthProvider.credentialFromError(error)
+  );
+}
 
 interface AuthContextValue {
   user: User | null;
@@ -28,6 +57,7 @@ interface AuthContextValue {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  linkPendingCredential: (credential: AuthCredential) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -46,12 +76,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, []);
 
+  const popupSignIn = async (provider: FirebaseAuthProvider) => {
+    try {
+      await signInWithPopup(getFirebaseAuth(), provider);
+    } catch (e) {
+      const error = e as AuthError;
+      if (error.code === "auth/account-exists-with-different-credential") {
+        const pendingCredential = pendingCredentialFrom(error);
+        const email = error.customData?.email as string | undefined;
+        if (pendingCredential && email) {
+          const methods = await fetchSignInMethodsForEmail(getFirebaseAuth(), email);
+          throw new AccountLinkRequiredError(email, methods, pendingCredential);
+        }
+      }
+      throw error;
+    }
+  };
+
   const signInWithGoogle = async () => {
-    await signInWithPopup(getFirebaseAuth(), googleProvider);
+    await popupSignIn(googleProvider);
   };
 
   const signInWithGithub = async () => {
-    await signInWithPopup(getFirebaseAuth(), githubProvider);
+    await popupSignIn(githubProvider);
   };
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -74,6 +121,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sendPasswordResetEmail(getFirebaseAuth(), email);
   };
 
+  const linkPendingCredential = async (credential: AuthCredential) => {
+    const auth = getFirebaseAuth();
+    if (!auth.currentUser) throw new Error("Must be signed in to link a credential");
+    await linkWithCredential(auth.currentUser, credential);
+  };
+
   const getToken = async (): Promise<string | null> => {
     const auth = getFirebaseAuth();
     return auth.currentUser ? auth.currentUser.getIdToken() : null;
@@ -94,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithEmail,
         signUpWithEmail,
         resetPassword,
+        linkPendingCredential,
         logout,
       }}
     >
